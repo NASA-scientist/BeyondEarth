@@ -1,0 +1,590 @@
+<!--
+    The MIT License (MIT)
+
+    Copyright (c) 2011-2018 Twitter, Inc.
+    Copyright (c) 2011-2018 The Bootstrap Authors
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+-->
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BeyondEarth</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #starfield {
+      z-index: 0;
+    }
+
+    #background-image {
+      z-index: 1;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('https://github.com/NASA-scientist/BeyondEarth/blob/main/T%C5%82o%20na%20stron%C4%992.png?raw=true');
+      background-size: cover;
+      background-position: center;
+      opacity: 1;
+    }
+
+    .intro-text, .landing-spot-title, .mission-completed-text {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #d35400;
+      font-size: 32px;
+      font-weight: bold;
+      z-index: 3;
+    }
+
+    .intro-text {
+      bottom: 320px;
+      display: block;
+    }
+
+    .landing-spot-title {
+      bottom: 380px;
+      display: none;
+    }
+
+    .mission-completed-text {
+      bottom: 200px;
+      display: none;
+      color: #d35400;
+    }
+
+    .custom-table {
+      z-index: 2;
+      position: absolute;
+      background-color: rgba(79, 96, 151, 0.8);
+      border: 4px solid #1e40af;
+      border-radius: 15px;
+      padding: 20px;
+      width: 620px;
+      height: 310px;
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+    .scrollable-content {
+      height: 430px;
+      overflow-y: auto;
+    }
+
+    #panel-1.custom-table {
+      height: 160px;
+      bottom: 120px;
+    }
+
+    #panel-2.custom-table{
+    height: 310px;
+      bottom: 40px;
+      z-index: 2;
+      width: 620px;
+    }
+    #panel-3.custom-table{
+    height: 500px;
+      bottom: 20px;
+      z-index: 2;
+      width: 620px;
+    }
+    #panel-3-2.custom-table, #panel-4.custom-table, #panel-5.custom-table, #panel-chemosynthesis.custom-table {
+      height: 310px;
+      bottom: 40px;
+      z-index: 2;
+      width: 620px;
+    }
+
+    h5 {
+      color: white;
+      margin-bottom: 3px;
+    }
+
+    p {
+      color: white;
+      margin-top: 3px;
+    }
+
+    .form-range {
+      margin-top: 3px;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .active-panel {
+      display: block;
+    }
+
+    .navigation-buttons {
+      margin-top: 20px;
+      text-align: center;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+    }
+
+    .navigation-buttons button {
+      margin: 5px;
+      padding: 10px 20px;
+      display: block;
+      z-index: 3;
+      position: relative;
+    }
+
+    .back-button {
+      position: absolute;
+      left: 40px;
+      bottom: 330px;
+      z-index: 6;
+    }
+
+    .next-button-right {
+      position: absolute;
+      right: 40px;
+      bottom: 330px;
+      z-index: 6;
+    }
+
+    .chemosynthetic-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 6;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="starfield"></canvas>
+  <div id="background-image"></div>
+
+  <!-- Przycisk powrotu -->
+  <div class="back-button" id="backButton" style="display: none;">
+    <button type="button" class="btn btn-outline-secondary" onclick="handleBackButton()">Back</button>
+  </div>
+
+  <!-- Przycisk Next skrajnie po prawej stronie w kroku 3 -->
+  <div class="next-button-right" id="nextButtonRight" style="display: none;">
+    <button type="button" class="btn btn-outline-secondary" onclick="nextPanel(4)">Next</button>
+  </div>
+
+  <!-- Przycisk Chemosynthetic na górze po prawej stronie -->
+  <div class="chemosynthetic-button">
+    <button type="button" class="btn btn-outline-secondary" onclick="goToChemosynthesis()">Chemosynthetic</button>
+  </div>
+
+  <!-- Krok 1 - Powitanie -->
+  <div id="intro-text" class="intro-text">Hello there! Become a NASA scientist.<br>Let’s begin the adventure!</div>
+
+  <!-- Panel 1 -->
+  <div id="panel-1" class="custom-table panel active-panel">
+    <input type="text" class="form-control" placeholder="Enter name and surname" id="nameInput">
+    <div class="navigation-buttons">
+      <button class="btn btn-primary" onclick="nextPanel(2)">Go</button>
+    </div>
+  </div>
+
+  <!-- Panel 2 - Wybór planety -->
+  <div id="landing-spot-title" class="landing-spot-title">What's your landing spot?</div>
+  <div id="panel-2" class="custom-table panel">
+    <h5>Select size:</h5>
+    <input type="range" class="form-range" id="sizeRange" min="0" max="2" step="0.01" value="1" oninput="handleSizeSlider(this.value)">
+    <p id="sizeDisplay">Selected size: medium</p>
+
+    <h5 class="mt-4">Distance from the star:</h5>
+    <input type="range" class="form-range" id="distanceRange" min="0" max="2" step="0.01" value="1" oninput="handleDistanceSlider(this.value)">
+    <p id="distanceDisplay">Selected distance: close</p>
+
+    <div class="navigation-buttons">
+      <button class="btn btn-primary" onclick="showPlanet()">Go</button>
+    </div>
+  </div>
+
+  <!-- Panel 3 - Planeta i ekosystem -->
+  <div id="panel-3" class="custom-table panel">
+    <h5 id="planetTitle">Generated Planet</h5>
+    <div id="planetDescription" class="scrollable-content"></div> <!-- Przewijalna tabela dla opisów planet -->
+  </div>
+
+  <!-- Panel 4 - Opis ekosystemu na planecie -->
+  <div id="panel-4" class="custom-table panel">
+    <h5 id="ecosystemTitle">Ecosystem</h5>
+    <div id="ecosystemDescription" class="scrollable-content"></div>
+  </div>
+
+  <!-- Panel 5 - Zakończenie misji -->
+  <div id="panel-5" class="custom-table panel">
+    <p>Your mission is complete! You've explored a planet and learned about its ecosystem and life forms.</p>
+  </div>
+
+  <!-- Panel - Definicja Chemosyntezy -->
+  <div id="panel-chemosynthesis" class="custom-table panel">
+    <h5>Chemosynthesis</h5>
+    <div class="scrollable-content">
+      <p><img src="https://raw.githubusercontent.com/NASA-scientist/BeyondEarth/refs/heads/main/Hydrothermal%20vent.jpg"
+        width="390px" height="390px">
+<br>
+<br>
+
+        Chemosynthesis is one of the metabolic processes that organisms use to obtain food and energy. 
+      It is a biological process in which chemical energy is converted into carbohydrates to nourish the organism. 
+      This process involves the oxidation of compounds like methane, hydrogen sulfide, ammonia, and others. 
+      During this process, energy is produced, and in the second stage, water and carbon dioxide are released.</p>
+
+      <p>Nutrition through chemosynthesis occurs in extreme environmental conditions. Hydrothermal vents are areas 
+      on the ocean floor where hot water flows through cracks in the Earth's crust. When it comes into contact with 
+      cold ocean water, minerals precipitate. Since sunlight doesn't reach the deep ocean where hydrothermal vents 
+      are located, photosynthesis is impossible there. Chemosynthesis becomes the key process supporting life in 
+      these regions. In this way, bacteria producing organic compounds provide food for other organisms, such as 
+      tube worms and polychaetes.</p>
+
+      <p>There is a possibility that this process was the first method organisms used for nutrition and may have 
+      initiated life on Earth, which is why we base our search for life on similar processes.</p>
+    </div>
+  </div>
+
+  <!-- Napis kończący misję -->
+  <div class="mission-completed-text" id="missionCompletedText">Your mission has been completed.</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let previousPanel = 1;
+    let chemosynthesisOriginPanel = null; // Zmienna do zapamiętania panelu
+
+    const canvas = document.getElementById('starfield');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const numStars = 1000;
+    const stars = [];
+
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: (canvas.height / 2) + (Math.random() * 200 - 100),
+        z: Math.random() * canvas.width,
+        radius: Math.random() * 2 + 1
+      });
+    }
+
+    function animateStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'white';
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+
+      for (let i = 0; i < numStars; i++) {
+        const star = stars[i];
+        let k = 128.0 / star.z;
+        let x = (star.x - canvas.width / 2) * k + canvas.width / 2;
+        let y = (star.y - canvas.height / 2) * k + canvas.height / 2;
+        let radius = star.radius * k;
+
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        star.z -= 2;
+        if (star.z <= 0) {
+          star.z = canvas.width;
+        }
+      }
+
+      requestAnimationFrame(animateStars);
+    }
+
+    animateStars();
+
+    function handleSizeSlider(val) {
+        const rangeValue = parseFloat(val);
+        const sizeDisplay = document.getElementById('sizeDisplay');
+        let sizeText;
+        if (rangeValue <= 0.7) {
+            sizeText = "small";
+        } else if (rangeValue > 0.7 && rangeValue <= 1.3) {
+            sizeText = "medium";
+        } else {
+            sizeText = "large";
+        }
+        sizeDisplay.textContent = `Selected size: ${sizeText}`;
+    }
+
+    function handleDistanceSlider(val) {
+        const rangeValue = parseFloat(val);
+        const distanceDisplay = document.getElementById('distanceDisplay');
+        let distanceText;
+        if (rangeValue <= 0.7) {
+            distanceText = "close";
+        } else if (rangeValue > 0.7 && rangeValue <= 1.3) {
+            distanceText = "habitable zone";
+        } else {
+            distanceText = "far from";
+        }
+        distanceDisplay.textContent = `Selected distance: ${distanceText}`;
+    }
+
+    function showPlanet() {
+        const sizeDisplay = document.getElementById('sizeDisplay').textContent;
+        const distanceDisplay = document.getElementById('distanceDisplay').textContent;
+        const planetTitle = document.getElementById('planetTitle');
+        const planetDescription = document.getElementById('planetDescription');
+        const ecosystemDescription = document.getElementById('ecosystemDescription');
+
+        // Sprawdzanie warunków, gdzie nie ma dostępnej planety i blokowanie przejścia do kroku 3
+        if (
+            (distanceDisplay.includes('habitable zone') && sizeDisplay.includes('small')) ||
+            (distanceDisplay.includes('habitable zone') && sizeDisplay.includes('medium')) ||
+            (distanceDisplay.includes('close') && sizeDisplay.includes('medium')) ||
+            (distanceDisplay.includes('close') && sizeDisplay.includes('large'))
+        ) {
+            alert('Selected configuration does not have an available planet. Please adjust your parameters.');
+            return; // Blokowanie przejścia do kroku 3
+        }
+
+        // Zmieniamy opis planety i ekosystemu w zależności od wybranej planety
+        if (distanceDisplay.includes('far from') && sizeDisplay.includes('small')) {
+            planetTitle.textContent = "Europe";
+            planetDescription.innerHTML = `
+                <p>
+                <img src="https://raw.githubusercontent.com/NASA-scientist/BeyondEarth/refs/heads/main/Europe.jpg"
+                width="390px" height="390px">
+                <br>
+                <br>
+                Traveler, you’ve landed! You stand in the twilight on a completely frozen surface, 
+                with nothing else visible all the way to the horizon. In the distance, you can see geysers 
+                erupting. It doesn’t look like a friendly place. Are you safe? You wouldn't want to get scalded!</p>
+                <p>[Energy]</p>
+                <p>The place where we’ve landed is a moon, not a planet, so it doesn’t generate heat from its formation 
+                or from radioactivity. As it moves along its orbit, it passes near other celestial moons. This affects its gravity, 
+                which causes the moon to stretch and bend. This bending creates friction inside, caused by tidal forces. 
+                In the end, these processes generate energy, which could sustain a subsurface ocean of salty water. 
+                Warm water is pushed upwards by convection. This energy may also cause geysers to form on the surface.</p>
+            `;
+            ecosystemDescription.innerHTML = `
+                <p>There isn’t much light here; we are too far from the star, and twilight reigns. 
+                We assume that life developed at the bottom of the ocean, as that would be the most attractive environment. 
+                The presence of hydrothermal vents provides the necessary conditions for survival. 
+                We expect to find the largest colonies of bioluminescent organisms there. 
+                As a result, the ocean floor is illuminated, and free-moving organisms can use this bioluminescence to light their way. 
+                Could this extraordinary type of symbiosis affect the entire ecosystem?</p>
+            `;
+        } else if (distanceDisplay.includes('far from') && sizeDisplay.includes('medium')) {
+            planetTitle.textContent = "Titan";
+            planetDescription.innerHTML = `
+                <p>
+                <img src="https://raw.githubusercontent.com/NASA-scientist/BeyondEarth/refs/heads/main/Tytan.jpg"
+                width="390px" height="390px">
+                <br>
+                <br>
+                Traveler! You have just landed on a methane lake! In front of you stretches an archipelago of ice 
+                formations made of water. You see clouds, and methane rain is falling from the sky. The dense atmosphere 
+                causes everything to happen more slowly than on Earth. The landscape looks inviting; something suggests 
+                that there might be life beneath your boat.</p>
+                <p>[Energy]</p>
+                <p>The moon, orbiting its planet, passes by other objects that influence its gravity. As a result, tidal 
+                forces act on it, trying to stretch and deform it. The energy generated indicates the formation of internal 
+                forces that could contribute to the existence of a subsurface ocean and hydrothermal vents.</p>
+            `;
+            ecosystemDescription.innerHTML = `
+                <p>On the surface of our moon, there are rivers and lakes of hydrocarbons, but we can also observe water ice sheets. 
+                It’s possible that the seasonal cycle forces the migration of these lakes. However, these changes occur very slowly 
+                since a year lasts several decades. Beneath the surface, there are oceans, and these are the places where life is most 
+                likely to be found, near hydrothermal vents.</p>
+            `;
+        } else if (distanceDisplay.includes('far from') && sizeDisplay.includes('large')) {
+            planetTitle.textContent = "OGLE 2005-BLG-2901.b";
+            planetDescription.innerHTML = `
+                <p>
+                <img src="https://raw.githubusercontent.com/NASA-scientist/BeyondEarth/refs/heads/main/OGLE.jpg"
+                width="390px" height="390px">
+                <br>
+                <br>
+                Traveler! You have arrived on an ice planet. We are 20 AU away from the nearest star. 
+                It is very cold here, and there is little light. The thick ice covering the whole planet 
+                makes it a tough place to live. But does that mean life is impossible?</p>
+                <p>[Energy]</p>
+                <p>The energy on this planet comes from when it was formed and from the decay of radioactive 
+                elements inside it. This energy moves up through the planet and creates hydrothermal vents. 
+                The high temperature around these vents can melt the ice, forming liquid water under the surface. 
+                This could be a place where life might begin.</p>
+            `;
+            ecosystemDescription.innerHTML = `
+                <p>At the planet's core lies a spherical nucleus made of heavy elements. The surrounding 
+                layer consists of lighter matter. Above the rocks, there is a layer of ice that forms a barrier 
+                between the planet’s atmosphere and its interior. In isolated spots, there are subsurface 
+                hydrothermal vents that melt the ice at specific points, creating endemic, isolated environments. 
+                These are divided into static and mobile life forms, with the latter possibly developing 
+                echolocation to navigate in the completely dark environment.</p>
+                <p>One major threat to the inhabitants of our exoplanet could be an increase in the number of 
+                hydrothermal vents in one location. Uncontrolled melting of the ice due to hydrothermal activity 
+                could lead to the formation of larger water bodies. These isolated bodies of water, having evolved under 
+                different conditions, could become so autonomous that their sudden merging might cause unpredictable changes. 
+                This could either present an opportunity for development or pose a risk of disrupting the ecosystem.</p>
+            `;
+        } else if (distanceDisplay.includes('habitable zone') && sizeDisplay.includes('large')) {
+            planetTitle.textContent = "K2-18b";
+            planetDescription.innerHTML = `
+                <p>
+                <p>
+                <img src="https://raw.githubusercontent.com/NASA-scientist/BeyondEarth/refs/heads/main/K-18b.jpg"
+                width="390px" height="390px">
+                <br>
+                <br>
+                Explorer! We travel through the universe in search of an unexplored new world. There is water 
+                all around, and you wonder if we’ll be able to dock anywhere.</p>
+                <p>[Energy]</p>
+                <p>Besides the energy from the planet's interior, the main source of energy on our exoplanet 
+                will be solar radiation, which heats the vast ocean. We are close to the star, allowing the liquid 
+                ocean to remain on the surface. Could there be life beneath the surface of such a massive body of water?</p>
+            `;
+            ecosystemDescription.innerHTML = `
+                <p>The structure of this exoplanet allows for the formation of hydrothermal vents on the ocean floor, 
+                creating ideal conditions for sustaining life. At great depths, there is high pressure, so organisms must be adapted to it. 
+                Due to the lack of light, these organisms develop luminescence abilities. Other species possess electroreception, 
+                detecting electric stimuli from the fields of other animals. In the upper layers of the ocean, sunlight may reach, 
+                and there is lower pressure, so organisms will differ from those living below. These organisms have well-developed photoreceptors, 
+                and they exhibit different colors to stand out among other species. Such interactions will create stratified ecosystems within 
+                our aquatic environment.</p>
+                <p>On our exoplanet, due to the density and pressure at the ocean floor, there is very high pressure. These conditions can turn 
+                water into forms of dense ice that sink to the ocean bottom. This is a unique, stable ice structure, but it doesn’t rule out the 
+                formation of hydrothermal vents.</p>
+            `;
+        } else if (distanceDisplay.includes('close') && sizeDisplay.includes('small')) {
+            planetTitle.textContent = "Trappist- 1d";
+            planetDescription.innerHTML = `
+                <p>
+                <img src="https://raw.githubusercontent.com/NASA-scientist/BeyondEarth/refs/heads/main/Trappist%201-d.jpg"
+                            width="390px" height="390px">
+                <br>
+                <br>
+                You land on a narrow ocean that stretches all the way to the horizon, forming an endless line 
+                dividing the planet. You look towards the star, which is low on the horizon, and you see the 
+                sun-scorched surface. You feel a cold wind at your back, and when you turn around, you can see the 
+                frozen ice in the darkness. It seems you must stay where you are because crossing the boundary where 
+                extreme temperatures collide could end in disaster for you.</p>
+                <p>[Energy]</p>
+                <p>Synchronous rotation occurs where a smaller object orbits a larger one. The exoplanet we've landed on 
+                rotates on its axis in exactly the same amount of time it takes to orbit its star.
+                </p>
+            `;
+            ecosystemDescription.innerHTML = `
+                <p>The ecosystem on our exoplanet primarily consists of a narrow strip of water between the bright, desert zone 
+                and the icy, dark side of the planet. This creates strong winds blowing from the cold side to the warm side. 
+                Here, we will search for life near underwater hydrothermal vents, which provide a suitable environment for survival. 
+                Our water world of organisms ranges from the warm oceanic waters near the desert to the icy waters on the planet's dark side. 
+                This allows for the development of a diverse ecosystem adapted to various conditions.
+                </p>
+                
+            `;
+        } else {
+            planetTitle.textContent = "Unknown Planet";
+            planetDescription.textContent = "Description: No matching configuration found.";
+            ecosystemDescription.textContent = "Ecosystem: No matching ecosystem found.";
+        }
+
+        nextPanel(3); // Przejdź do panelu 3 po wyświetleniu planety
+    }
+
+    function nextPanel(panelNumber) {
+        document.querySelector('.active-panel').classList.remove('active-panel');
+        if (panelNumber === 5) {
+            document.getElementById('missionCompletedText').style.display = 'block';
+        } else {
+            document.getElementById(`panel-${panelNumber}`).classList.add('active-panel');
+        }
+
+        const introText = document.getElementById('intro-text');
+        const landingSpotTitle = document.getElementById('landing-spot-title');
+        const backButton = document.getElementById('backButton');
+        const nextButtonRight = document.getElementById('nextButtonRight');
+
+        if (panelNumber === 2 || panelNumber === 3 || panelNumber === 4 || panelNumber === 5 || panelNumber === 'chemosynthesis') {
+            introText.style.display = 'none';
+        }
+
+        if (panelNumber === 2) {
+            landingSpotTitle.style.display = 'block';
+            backButton.style.display = 'none'; // Ukrycie przycisku "Back" dla kroku 2
+            nextButtonRight.style.display = 'none';
+        }
+
+        if (panelNumber === 3 || panelNumber === 4) {
+            landingSpotTitle.style.display = 'none';
+            backButton.style.display = 'block';
+            nextButtonRight.style.display = 'block';
+        }
+
+        if (panelNumber === 'chemosynthesis') {
+            backButton.style.display = 'block';
+            nextButtonRight.style.display = 'none';
+        }
+
+        
+        if (panelNumber !== 'chemosynthesis') {
+            previousPanel = panelNumber;
+        }
+    }
+
+    function goToChemosynthesis() {
+        chemosynthesisOriginPanel = previousPanel; // Zapamiętanie poprzedniego panelu
+        nextPanel('chemosynthesis');
+    }
+
+    // Obsłużenie przycisku "Back" cofające do wcześniejszego panelu.
+    function handleBackButton() {
+        if (chemosynthesisOriginPanel !== null) {
+            nextPanel(chemosynthesisOriginPanel); // Powrót do poprzedniego panelu
+        } else {
+            nextPanel(1); // W razie problemu, wracamy do panelu 1
+        }
+        chemosynthesisOriginPanel = null; // Wyzerowanie zmiennej
+    }
+  </script>
+</body>
+</html>
